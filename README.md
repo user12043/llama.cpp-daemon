@@ -1,6 +1,6 @@
 # Llama.cpp Server Daemon
 
-A systemd daemon for running llama.cpp server as a persistent service on Linux. Automatically restarts on failure and starts at boot.
+A user-level systemd daemon for running llama.cpp server as a persistent service on Linux. Automatically restarts on failure and starts with your user session.
 
 ## Description
 
@@ -35,8 +35,8 @@ ls ~/models/GLM-4.7-Flash-Q4_K_M.gguf
 # Make install scripts executable
 chmod +x install.sh uninstall.sh
 
-# Run install script (requires sudo)
-sudo ./install.sh
+# Run install script (no sudo needed)
+./install.sh
 ```
 
 The installation will prompt you for:
@@ -47,10 +47,10 @@ The installation will prompt you for:
 
 ```bash
 # Check service status
-sudo systemctl status llama-server
+systemctl --user status llama-server
 
 # View logs
-sudo journalctl -u llama-server -f
+journalctl --user-unit llama-server -f
 ```
 
 ## Usage
@@ -70,60 +70,56 @@ You can use convenience scripts for common operations:
 ### Starting the service
 
 ```bash
-sudo systemctl start llama-server
+systemctl --user start llama-server
 ```
 
 ### Stopping the service
 
 ```bash
-sudo systemctl stop llama-server
+systemctl --user stop llama-server
 ```
 
 ### Restarting the service
 
 ```bash
-sudo systemctl restart llama-server
+systemctl --user restart llama-server
 ```
 
-### Enabling auto-start on boot
+### Enabling auto-start on login
 
 ```bash
-sudo systemctl enable llama-server
+systemctl --user enable llama-server
 ```
 
-### Disabling auto-start on boot
+### Disabling auto-start on login
 
 ```bash
-sudo systemctl disable llama-server
+systemctl --user disable llama-server
 ```
 
 ### Checking service status
 
 ```bash
-sudo systemctl status llama-server
+systemctl --user status llama-server
 ```
 
 ### Viewing logs
 
 ```bash
 # Follow logs in real-time
-sudo journalctl -u llama-server -f
+journalctl --user-unit llama-server -f
 
 # View last 100 lines
-sudo journalctl -u llama-server -n 100
-
-# View logs with timestamps
-sudo journalctl -u llama-server -t llama-server
+journalctl --user-unit llama-server -n 100
 
 # Use the logs script
-logs
+./logs.sh
 ```
 
 ## Configuration
 
-Configuration is stored in `/etc/systemd/system/llama-server.env`. Common values:
+Configuration is stored in `~/.config/systemd/user/llama-server.env`. Common values:
 
-- `SERVICE_USER/GROUP`: User and group to run the daemon as (auto-detected)
 - `MODEL_PATH`: Path to the GGUF model file
 - `HOST/PORT`: Server address and port (default: 0.0.0.0:8081)
 - `CONTEXT_SIZE`: Context window size (default: 32768)
@@ -136,11 +132,11 @@ Configuration is stored in `/etc/systemd/system/llama-server.env`. Common values
 
 ```bash
 # Edit the environment file
-sudo nano /etc/systemd/system/llama-server.env
+nano ~/.config/systemd/user/llama-server.env
 
 # Reload systemd and restart
-sudo systemctl daemon-reload
-sudo systemctl restart llama-server
+systemctl --user daemon-reload
+systemctl --user restart llama-server
 ```
 
 ## Troubleshooting
@@ -149,13 +145,13 @@ sudo systemctl restart llama-server
 
 ```bash
 # Check detailed logs
-sudo journalctl -u llama-server -n 100 --no-pager
+journalctl --user-unit llama-server -n 100 --no-pager
 
-# Verify model file exists
-ls -l /etc/systemd/system/llama-server.env
+# Verify config file exists
+ls -l ~/.config/systemd/user/llama-server.env
 
 # Check file permissions
-stat /etc/systemd/system/llama-server.env
+stat ~/.config/systemd/user/llama-server.env
 ```
 
 ### Model not found
@@ -172,16 +168,16 @@ ls -l /path/to/llama.cpp/build/bin/llama-server
 
 ### Permission denied
 
-Ensure the service user has read access to the model file and llama.cpp directory:
+Ensure your user has read access to the model file and llama.cpp directory:
 
 ```bash
 # Check file permissions
 ls -l /path/to/model.gguf
 ls -ld /path/to/llama.cpp
 
-# Fix permissions if needed
-sudo chown -R $USER:$USER /path/to/llama.cpp
+# Fix permissions if needed (if needed)
 chmod -R 755 /path/to/llama.cpp
+chmod -R 644 /path/to/model.gguf
 ```
 
 ### Port already in use
@@ -189,14 +185,14 @@ chmod -R 755 /path/to/llama.cpp
 Check what's using port 8081:
 
 ```bash
-sudo netstat -tulpn | grep 8081
-sudo lsof -i :8081
+netstat -tulpn | grep 8081
+lsof -i :8081
 
 # Change port in environment file
-sudo nano /etc/systemd/system/llama-server.env
+nano ~/.config/systemd/user/llama-server.env
 # Update PORT to a different value
-sudo systemctl daemon-reload
-sudo systemctl restart llama-server
+systemctl --user daemon-reload
+systemctl --user restart llama-server
 ```
 
 ## Uninstallation

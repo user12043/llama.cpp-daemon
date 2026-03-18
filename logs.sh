@@ -1,21 +1,20 @@
 #!/bin/bash
 
 SERVICE_NAME="llama-server.service"
-LOG_FILE="/var/log/llama-server.log"
 
 echo "=== Llama.cpp Server Daemon Logs ==="
 echo ""
 
 # Check if service is enabled
-if systemctl is-enabled --quiet "${SERVICE_NAME}" 2>/dev/null; then
+if systemctl --user is-enabled --quiet "${SERVICE_NAME}" 2>/dev/null; then
     echo "🟢 Service is enabled"
-    if systemctl is-active --quiet "${SERVICE_NAME}"; then
+    if systemctl --user is-active --quiet "${SERVICE_NAME}"; then
         echo "🟢 Service is active"
     else
         echo "🔴 Service is not active"
         echo ""
         echo "Service may be starting up or has failed:"
-        echo "  systemctl status ${SERVICE_NAME}"
+        echo "  systemctl --user status ${SERVICE_NAME}"
         echo ""
         echo "Recent logs:"
         echo "===================================="

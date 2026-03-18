@@ -1,7 +1,8 @@
 #!/bin/bash
 
 SERVICE_NAME="llama-server.service"
-SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
+USERCONFIG_DIR="${HOME}/.config/systemd/user"
+SERVICE_FILE="${USERCONFIG_DIR}/${SERVICE_NAME}"
 
 echo "=== Llama.cpp Server Daemon Status ==="
 echo ""
@@ -9,13 +10,13 @@ echo ""
 # Check if service file exists
 if [ ! -f "${SERVICE_FILE}" ]; then
     echo "❌ Service file not found at ${SERVICE_FILE}"
-    echo "   Run 'sudo ./install.sh' to install the daemon"
+    echo "   Run './install.sh' to install the daemon"
     exit 1
 fi
 
 # Show service status
 echo "📋 Service Status:"
-systemctl status "${SERVICE_NAME}" --no-pager
+systemctl --user status "${SERVICE_NAME}" --no-pager
 echo ""
 
 # Show service file location

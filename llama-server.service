@@ -1,15 +1,16 @@
 [Unit]
 Description=llama.cpp Server Daemon
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/systemd/system/llama-server.env
-ExecStart=/bin/bash -c 'source /etc/systemd/system/llama-server.env; exec ${LLAMCPP_DIR}/build/bin/llama-server -m "${MODEL_PATH}" --host "${HOST}" --port "${PORT}" -ngl "${NGL_LEVEL}" --ctx-size "${CONTEXT_SIZE}" $([ "${JINJA_ENABLED}" = "true" ] && echo "--jinja" || true)'
+EnvironmentFile=%h/.config/systemd/user/llama-server.env
+ExecStart=/bin/bash -c 'source %h/.config/systemd/user/llama-server.env; if [ -f "${MODEL_PATH}" ]; then MODEL_ARG="-m"; else MODEL_ARG="-hf"; fi; exec "${LLAMA_SERVER_BIN}" "${MODEL_ARG}" "${MODEL_PATH}" --host "${HOST}" --port "${PORT}" -ngl "${NGL_LEVEL}" --ctx-size "${CONTEXT_SIZE}" $([ "${JINJA_ENABLED}" = "true" ] && echo "--jinja" || true)'
 Restart=always
 RestartSec=5s
 StandardOutput=journal
 StandardError=journal
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
