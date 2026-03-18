@@ -8,14 +8,18 @@ INSTALL_DIR=$(dirname "$(readlink -f "$0")")
 TEMPLATE_FILE="${INSTALL_DIR}/.env.template"
 
 echo "Installing llama.cpp server daemon (user-level service)..."
-echo "Usage: ./install.sh [--model PATH] [--llamacpp_dir PATH]"
+echo "Usage: ./install.sh [--model PATH] [--llamacpp_dir PATH] [--host IP] [--port PORT]"
 echo "Options:"
 echo "  --model PATH       Path to .gguf model file or Hugging Face model ID (optional)"
 echo "  --llamacpp_dir PATH Path to llama.cpp directory (optional)"
+echo "  --host IP          Host IP to bind to (optional, default 0.0.0.0)"
+echo "  --port PORT        Port number to bind to (optional, default 8081)"
 
 # Parse command line arguments
 MODEL_PATH=""
 LLAMCPP_DIR=""
+HOST=""
+PORT=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -25,6 +29,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --llamacpp_dir)
             LLAMCPP_DIR="$2"
+            shift 2
+            ;;
+        --host)
+            HOST="$2"
+            shift 2
+            ;;
+        --port)
+            PORT="$2"
             shift 2
             ;;
         *)
@@ -68,6 +80,21 @@ fi
 if [ -z "${JINJA_ENABLED}" ]; then
     JINJA_ENABLED="true"
 fi
+if [ -z "${NGL_LEVEL}" ]; then
+    read -p "Enter NGL_LEVEL (number of GPU layers to offload, leave empty to skip): " NGL_LEVEL
+fi
+if [ -z "${HOST}" ]; then
+    read -p "Enter HOST (IP to bind to, default 0.0.0.0): " HOST
+    if [ -z "${HOST}" ]; then
+        HOST="0.0.0.0"
+    fi
+fi
+if [ -z "${PORT}" ]; then
+    read -p "Enter PORT (port number, default 8081): " PORT
+    if [ -z "${PORT}" ]; then
+        PORT="8081"
+    fi
+fi
 
 # Validate values are set
 if [ -z "${MODEL_PATH}" ] || [ -z "${LLAMCPP_DIR}" ]; then
@@ -78,6 +105,8 @@ fi
 # Replace template values in environment file
 sed -i "s|MODEL_PATH=.*|MODEL_PATH=${MODEL_PATH}|" "${ENV_FILE}"
 sed -i "s|LLAMCPP_DIR=.*|LLAMCPP_DIR=${LLAMCPP_DIR}|" "${ENV_FILE}"
+sed -i "s|HOST=.*|HOST=${HOST}|" "${ENV_FILE}"
+sed -i "s|PORT=.*|PORT=${PORT}|" "${ENV_FILE}"
 sed -i "s|RESTART_MODE=.*|RESTART_MODE=${RESTART_MODE}|" "${ENV_FILE}"
 sed -i "s|RESTART_SECONDS=.*|RESTART_SECONDS=${RESTART_SECONDS}|" "${ENV_FILE}"
 sed -i "s|JINJA_ENABLED=.*|JINJA_ENABLED=${JINJA_ENABLED}|" "${ENV_FILE}"
